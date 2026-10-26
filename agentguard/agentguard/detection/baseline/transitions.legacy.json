@@ -1,0 +1,290 @@
+{
+ "alpha": 0.5,
+ "backoff_k": 20.0,
+ "device_weight": 2.0,
+ "devices": {},
+ "feature_schema_version": 3,
+ "format": 3,
+ "meta": {
+  "auc": 0.916,
+  "auc_components": {
+   "full": 0.916,
+   "rarity": 0.881,
+   "rarity_context": 0.877,
+   "rarity_intent": 0.928
+  },
+  "corpus_sessions": 49,
+  "cv_over_threshold": 0.0379,
+  "device_report": [],
+  "fixture_benign_over_threshold": 1,
+  "fixture_benign_steps": 67,
+  "fixture_risk_by_device": {},
+  "fixture_risk_over_threshold": 33,
+  "fixture_risk_steps": 44,
+  "holdout_min": 10,
+  "holdout_over_threshold": 0,
+  "holdout_sessions": 0,
+  "holdout_steps": 0,
+  "personalized_devices": [],
+  "recorded_sessions": 0,
+  "shared_sessions": 49,
+  "skipped": {
+   "device": 0,
+   "flagged": 0,
+   "flagged_steps": 0,
+   "incompatible_records": 0,
+   "old": 0
+  },
+  "threshold": 8.21,
+  "train_sessions": 49,
+  "train_steps": 264,
+  "vocabulary": 30
+ },
+ "params": {
+  "devices": [],
+  "exclude_flagged": "session",
+  "half_life_days": 14,
+  "holdout": 0.2,
+  "min_device_sessions": 5,
+  "personalize": false,
+  "quantile": 95,
+  "since_days": 30,
+  "threshold": 0,
+  "use_corpus": true,
+  "use_recorded": false
+ },
+ "sequence_semantics_version": 2,
+ "threshold": 8.21,
+ "transitions": {
+  "<start>": {
+   "AGENT_SPAWN": 1.0,
+   "EXEC:interp": 1.0,
+   "EXEC:lint": 1.0,
+   "EXEC:net:fetch": 2.0,
+   "EXEC:pkg": 3.0,
+   "EXEC:shell": 1.0,
+   "EXEC:test": 5.0,
+   "EXEC:unknown": 1.0,
+   "EXEC:vcs": 2.0,
+   "EXEC:vcs:local_write": 3.0,
+   "EXEC:vcs:read": 1.0,
+   "FILE_READ:workspace": 22.0,
+   "MCP_CALL": 2.0,
+   "NET_FETCH:external": 2.0,
+   "NET_SEARCH": 2.0
+  },
+  "AGENT_SPAWN": {
+   "FILE_READ:workspace": 1.0
+  },
+  "EXEC:build": {
+   "EXEC:container": 1.0,
+   "EXEC:test": 2.0,
+   "EXEC:vcs:read": 1.0
+  },
+  "EXEC:container": {
+   "EXEC:build": 1.0,
+   "EXEC:container": 4.0,
+   "EXEC:net:fetch": 3.0,
+   "FILE_READ:workspace": 1.0,
+   "FILE_WRITE:workspace": 1.0
+  },
+  "EXEC:fs": {
+   "EXEC:vcs": 1.0,
+   "FILE_READ:workspace": 4.0
+  },
+  "EXEC:interp": {
+   "EXEC:fs": 2.0,
+   "EXEC:interp": 1.0,
+   "EXEC:pkg": 1.0,
+   "FILE_WRITE:tmp": 1.0
+  },
+  "EXEC:lint": {
+   "EXEC:lint": 1.0,
+   "EXEC:test": 1.0,
+   "EXEC:unknown": 1.0
+  },
+  "EXEC:net:fetch": {
+   "NET_FETCH:code_host": 1.0,
+   "NET_FETCH:external": 1.0,
+   "NET_FETCH:local": 4.0
+  },
+  "EXEC:net:upload": {
+   "FILE_READ:tmp": 1.0,
+   "FILE_READ:workspace": 1.0,
+   "NET_FETCH:local": 1.0
+  },
+  "EXEC:pkg": {
+   "EXEC:net:fetch": 1.0,
+   "EXEC:pkg": 3.0,
+   "EXEC:test": 4.0,
+   "EXEC:unknown": 1.0,
+   "EXEC:vcs:read": 1.0,
+   "FILE_READ:workspace": 3.0,
+   "FILE_WRITE:workspace": 1.0,
+   "NET_FETCH:local": 1.0
+  },
+  "EXEC:shell": {
+   "EXEC:container": 1.0
+  },
+  "EXEC:test": {
+   "EXEC:build": 3.0,
+   "EXEC:lint": 1.0,
+   "EXEC:net:upload": 1.0,
+   "EXEC:pkg": 1.0,
+   "EXEC:test": 1.0,
+   "EXEC:vcs:local_write": 3.0,
+   "EXEC:vcs:remote_write": 1.0,
+   "FILE_READ:workspace": 2.0,
+   "FILE_WRITE:tmp": 1.0,
+   "FILE_WRITE:workspace": 1.0,
+   "MCP_CALL": 2.0
+  },
+  "EXEC:unknown": {
+   "EXEC:test": 1.0,
+   "EXEC:unknown": 1.0,
+   "EXEC:vcs:local_write": 1.0,
+   "FILE_READ:workspace": 1.0,
+   "FILE_WRITE:workspace": 1.0,
+   "NET_FETCH:package": 1.0
+  },
+  "EXEC:vcs": {
+   "EXEC:test": 1.0,
+   "EXEC:vcs": 2.0,
+   "EXEC:vcs:read": 1.0,
+   "FILE_READ:workspace": 2.0
+  },
+  "EXEC:vcs:local_write": {
+   "EXEC:test": 1.0,
+   "EXEC:vcs": 1.0,
+   "EXEC:vcs:local_write": 1.0,
+   "EXEC:vcs:remote_write": 1.0,
+   "FILE_WRITE:workspace": 1.0,
+   "NET_FETCH:code_host": 1.0
+  },
+  "EXEC:vcs:read": {
+   "EXEC:vcs:read": 1.0,
+   "FILE_READ:workspace": 2.0,
+   "META": 1.0
+  },
+  "EXEC:vcs:remote_write": {
+   "EXEC:vcs": 1.0
+  },
+  "FILE_READ:project_secret": {
+   "EXEC:container": 1.0
+  },
+  "FILE_READ:tmp": {
+   "EXEC:net:upload": 1.0,
+   "FILE_READ:tmp": 1.0,
+   "FILE_READ:workspace": 1.0,
+   "NET_FETCH:external": 1.0
+  },
+  "FILE_READ:workspace": {
+   "EXEC:fs": 2.0,
+   "EXEC:interp": 1.0,
+   "EXEC:pkg": 1.0,
+   "EXEC:test": 1.0,
+   "EXEC:unknown": 1.0,
+   "EXEC:vcs": 1.0,
+   "EXEC:vcs:read": 1.0,
+   "FILE_READ:project_secret": 1.0,
+   "FILE_READ:tmp": 1.0,
+   "FILE_READ:workspace": 17.0,
+   "FILE_WRITE:project_secret": 1.0,
+   "FILE_WRITE:workspace": 26.0,
+   "NET_FETCH:docs": 1.0,
+   "NET_FETCH:external": 2.0,
+   "NET_FETCH:package": 1.0,
+   "NET_SEARCH": 4.0
+  },
+  "FILE_WRITE:project_secret": {
+   "EXEC:container": 1.0
+  },
+  "FILE_WRITE:tmp": {
+   "EXEC:fs": 1.0,
+   "FILE_READ:tmp": 1.0
+  },
+  "FILE_WRITE:workspace": {
+   "EXEC:build": 2.0,
+   "EXEC:container": 3.0,
+   "EXEC:interp": 4.0,
+   "EXEC:lint": 2.0,
+   "EXEC:net:upload": 1.0,
+   "EXEC:pkg": 6.0,
+   "EXEC:test": 14.0,
+   "EXEC:unknown": 2.0,
+   "EXEC:vcs:local_write": 2.0,
+   "EXEC:vcs:read": 1.0,
+   "FILE_READ:workspace": 1.0,
+   "FILE_WRITE:workspace": 6.0
+  },
+  "MCP_CALL": {
+   "EXEC:test": 1.0,
+   "FILE_READ:workspace": 1.0,
+   "MCP_CALL": 2.0
+  },
+  "NET_FETCH:code_host": {
+   "FILE_READ:tmp": 1.0,
+   "FILE_WRITE:workspace": 1.0,
+   "NET_FETCH:code_host": 1.0
+  },
+  "NET_FETCH:docs": {
+   "FILE_READ:workspace": 1.0,
+   "FILE_WRITE:workspace": 3.0
+  },
+  "NET_FETCH:external": {
+   "EXEC:container": 1.0,
+   "EXEC:pkg": 1.0,
+   "EXEC:vcs:read": 1.0,
+   "FILE_READ:workspace": 1.0,
+   "FILE_WRITE:workspace": 1.0
+  },
+  "NET_FETCH:local": {
+   "EXEC:pkg": 1.0,
+   "EXEC:test": 1.0,
+   "FILE_READ:workspace": 1.0,
+   "FILE_WRITE:workspace": 1.0
+  },
+  "NET_FETCH:package": {
+   "EXEC:pkg": 1.0,
+   "FILE_WRITE:workspace": 1.0
+  },
+  "NET_SEARCH": {
+   "FILE_WRITE:workspace": 1.0,
+   "NET_FETCH:docs": 3.0,
+   "NET_FETCH:external": 2.0
+  }
+ },
+ "unigram": {
+  "AGENT_SPAWN": 1.0,
+  "EXEC:build": 6.0,
+  "EXEC:container": 12.0,
+  "EXEC:fs": 5.0,
+  "EXEC:interp": 7.0,
+  "EXEC:lint": 5.0,
+  "EXEC:net:fetch": 6.0,
+  "EXEC:net:upload": 3.0,
+  "EXEC:pkg": 18.0,
+  "EXEC:shell": 1.0,
+  "EXEC:test": 33.0,
+  "EXEC:unknown": 7.0,
+  "EXEC:vcs": 8.0,
+  "EXEC:vcs:local_write": 10.0,
+  "EXEC:vcs:read": 8.0,
+  "EXEC:vcs:remote_write": 2.0,
+  "FILE_READ:project_secret": 1.0,
+  "FILE_READ:tmp": 5.0,
+  "FILE_READ:workspace": 62.0,
+  "FILE_WRITE:project_secret": 1.0,
+  "FILE_WRITE:tmp": 2.0,
+  "FILE_WRITE:workspace": 45.0,
+  "MCP_CALL": 6.0,
+  "META": 1.0,
+  "NET_FETCH:code_host": 3.0,
+  "NET_FETCH:docs": 4.0,
+  "NET_FETCH:external": 8.0,
+  "NET_FETCH:local": 6.0,
+  "NET_FETCH:package": 2.0,
+  "NET_SEARCH": 6.0
+ },
+ "version": "builtin"
+}

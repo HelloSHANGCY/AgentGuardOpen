@@ -1,0 +1,8 @@
+{
+  "ruleset_version": "AG-STATIC-2026.09.25.1",
+  "notes": [
+    "特征（弱密钥取值、密钥键名、鉴权开关、敏感挂载、Skill 指令特征等）见 agentguard/rulepacks/static-*.yaml，可在控制台「规则库」启停",
+    "weak_secret 特征仅用于识别可公开的示例/默认值，不包含真实生产凭证",
+    "规则命中表示静态证据，不代表配置当前生效或可被公网利用"
+  ]
+}

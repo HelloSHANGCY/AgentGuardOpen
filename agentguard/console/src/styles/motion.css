@@ -1,0 +1,57 @@
+/* 与参考页一致的轻量动效：入场 400ms / 8px，悬停 240ms，操作反馈 160ms。 */
+:root {
+  --card-hover-border: color-mix(in srgb, var(--brand) 30%, var(--line));
+  --card-hover-shadow: 0 10px 24px color-mix(in srgb, var(--brand) 11%, transparent),
+                       0 2px 6px color-mix(in srgb, var(--brand) 6%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .main :is(
+    .stat-cards .card, .bl-card, .rl-card, .baseline-overview > .baseline-card,
+    .js-kpi, .sa-summary-card, .sa-panel, .device-card, .deployment-card,
+    .policy-picker, .policy-detail, .models-card, .intent-card, .mt-runtime-charts, .js-charts
+  ):hover {
+    border-color: var(--card-hover-border);
+    box-shadow: var(--card-hover-shadow);
+  }
+  /* 连排指标沿用完整面板，用底色和内描边提示当前位置。 */
+  .main :is(.tc-summary-card, .ef-overview > div, .mt-latest-card, .mt-overview-cell, .mt-history-stat, .mt-kpi):hover {
+    background-color: var(--surface-code);
+    box-shadow: inset 0 0 0 1px var(--brand-line);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  nav button, .side-toggle {
+    transition: background-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out);
+  }
+  nav button.active::before { animation: nav-marker var(--motion-fast) var(--ease-out); }
+
+  .main :is(
+    .stat-cards .card, .bl-card, .rl-card, .baseline-overview > .baseline-card,
+    .js-kpi, .sa-summary-card, .sa-panel, .device-card, .deployment-card,
+    .policy-picker, .policy-detail, .models-card, .intent-card, .mt-runtime-charts, .js-charts
+  ) {
+    transition: border-color var(--motion-panel) var(--ease-out), box-shadow var(--motion-panel) var(--ease-out);
+  }
+  .main :is(.tc-summary-card, .ef-overview > div, .mt-latest-card, .mt-overview-cell, .mt-history-stat, .mt-kpi) {
+    transition: background-color var(--motion-panel) var(--ease-out), box-shadow var(--motion-panel) var(--ease-out);
+  }
+  .main :is(.stat-cards .card, .bl-card, .rl-overview > .rl-card, .baseline-overview > .baseline-card,
+             .js-kpi, .sa-summary-card, .device-card) {
+    transition: translate var(--motion-panel) var(--ease-out), border-color var(--motion-panel) var(--ease-out), box-shadow var(--motion-panel) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .main :is(.stat-cards .card, .bl-card, .rl-overview > .rl-card, .baseline-overview > .baseline-card,
+               .js-kpi, .sa-summary-card, .device-card):hover { translate: 0 -3px; }
+  }
+  /* 原生详情保持即时开合，内容短暂淡入，不拖慢长表单和证据阅读。 */
+  .main details[open] > :not(summary) { animation: disclosure-enter var(--motion-fast) var(--ease-out); }
+}
+
+@keyframes nav-marker { from { opacity: 0; transform: scaleY(.5); } to { opacity: 1; transform: scaleY(1); } }
+@keyframes disclosure-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

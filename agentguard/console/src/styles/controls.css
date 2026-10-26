@@ -1,0 +1,111 @@
+/* 以威胁中心为基准：常规控件 38px，表格操作 28px，分页 32px。 */
+:root {
+  --control-height:38px;
+  --control-compact-height:28px;
+  --control-pager-height:32px;
+  --control-current-height:var(--control-height);
+  --control-segment-height:calc(var(--control-height) - 8px);
+  --control-tab-height:42px;
+  --control-font-size:var(--font-body);
+  --control-gap:var(--space-2);
+  --control-radius:var(--radius-control);
+  --control-switch-width:40px;
+  --control-switch-height:20px;
+}
+
+:is(.el-button, .el-input, .el-select, .el-input-number, .el-date-editor, .el-radio-button, .el-radio, .el-checkbox, .el-switch) {
+  --el-component-size:var(--control-current-height);
+  --el-component-size-small:var(--control-current-height);
+  --el-font-size-small:var(--control-font-size);
+}
+.el-table { --control-current-height:var(--control-compact-height); }
+.compact-controls { --control-current-height:var(--control-compact-height); }
+.el-button { font-size:var(--control-font-size); border-radius:var(--control-radius); transition:color var(--motion-fast) var(--ease-out), background-color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); }
+.el-button:not(.is-link) { height:var(--control-current-height); min-height:var(--control-current-height); box-sizing:border-box; padding:0 14px; }
+.el-button.is-link { min-height:24px; padding:0; }
+.el-button:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+.el-button.is-disabled:focus-visible { outline:none; }
+.el-button .el-icon, .el-input__prefix .el-icon { font-size:var(--icon-action); }
+.el-input .el-input__wrapper { height:var(--control-current-height); min-height:var(--control-current-height); box-sizing:border-box; border-radius:var(--control-radius); padding:0 11px; }
+.el-input__inner { height:calc(var(--control-current-height) - 2px); line-height:calc(var(--control-current-height) - 2px); font-size:var(--control-font-size); }
+.el-select .el-select__wrapper { min-height:var(--control-current-height); box-sizing:border-box; border-radius:var(--control-radius); font-size:var(--control-font-size); padding:6px 12px; }
+.el-input__wrapper, .el-select__wrapper { transition:box-shadow var(--motion-fast) var(--ease-out), background-color var(--motion-fast) var(--ease-out); }
+.el-select__wrapper.is-filterable .el-select__input { font-size:var(--control-font-size); }
+.el-textarea__inner { border-radius:var(--control-radius); font-size:var(--control-font-size); line-height:1.65; padding:10px 12px; }
+.el-input-number { height:var(--control-current-height); line-height:calc(var(--control-current-height) - 2px); }
+.el-input-number.is-controls-right :is(.el-input-number__decrease, .el-input-number__increase) {
+  height:calc((var(--control-current-height) - 2px) / 2);
+  line-height:calc((var(--control-current-height) - 2px) / 2);
+  box-sizing:border-box;
+}
+.el-radio-button .el-radio-button__inner { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:var(--control-current-height); min-height:var(--control-current-height); box-sizing:border-box; padding:0 12px; font-size:var(--control-font-size); line-height:20px; }
+.sa-page-switch { --control-current-height:var(--control-segment-height); }
+.el-radio-button { --el-radio-button-checked-bg-color:var(--brand-bg); --el-radio-button-checked-text-color:var(--brand); --el-radio-button-checked-border-color:var(--brand-line); }
+.el-radio-button__original-radio:focus-visible + .el-radio-button__inner { outline:2px solid var(--brand); outline-offset:2px; z-index:1; }
+.el-checkbox, .el-radio, .el-switch { height:var(--control-current-height); min-height:var(--control-current-height); }
+.el-checkbox.is-bordered, .el-radio.is-bordered { height:var(--control-current-height); border-radius:var(--control-radius); }
+.el-checkbox .el-checkbox__label, .el-radio .el-radio__label { font-size:var(--control-font-size); }
+.el-checkbox .el-checkbox__inner, .el-radio .el-radio__inner { width:14px; height:14px; }
+.el-switch .el-switch__core { min-width:var(--control-switch-width); height:var(--control-switch-height); border-radius:calc(var(--control-switch-height) / 2); }
+.el-switch .el-switch__core .el-switch__inner { height:16px; padding:0 4px 0 18px; }
+.el-switch.is-checked .el-switch__core .el-switch__inner { padding:0 18px 0 4px; }
+.el-switch .el-switch__core .el-switch__action { width:16px; height:16px; }
+.el-switch.is-checked .el-switch__core .el-switch__action { left:calc(100% - 17px); margin-left:0; }
+.el-form-item .el-form-item__label { height:var(--control-current-height); line-height:var(--control-current-height); }
+.el-form-item .el-form-item__content { min-height:var(--control-current-height); line-height:var(--control-current-height); }
+.el-form--label-top .el-form-item .el-form-item__label { height:auto; line-height:20px; }
+.el-tabs { --el-tabs-header-height:var(--control-tab-height); }
+.el-pagination {
+  --control-current-height:var(--control-pager-height);
+  --el-pagination-font-size:var(--control-font-size);
+  --el-pagination-font-size-small:var(--control-font-size);
+  --el-pagination-button-height:var(--control-pager-height);
+  --el-pagination-button-height-small:var(--control-pager-height);
+  --el-pagination-button-width:var(--control-pager-height);
+  --el-pagination-button-width-small:var(--control-pager-height);
+}
+.el-pagination .el-select__wrapper { padding:4px 10px; }
+.el-pagination :is(.el-pager li, .btn-prev, .btn-next) { border-radius:6px; }
+
+.control-segmented {
+  --el-segmented-color:var(--muted);
+  --el-segmented-bg-color:var(--surface-soft);
+  --el-segmented-item-selected-color:var(--title);
+  --el-segmented-item-selected-bg-color:var(--panel);
+  --el-segmented-item-selected-disabled-bg-color:var(--line-2);
+  --el-segmented-item-hover-color:var(--title);
+  --el-segmented-item-hover-bg-color:var(--line-2);
+  min-height:var(--control-current-height); max-width:100%; padding:2px;
+  border:1px solid var(--line); border-radius:7px; font-size:var(--font-body);
+}
+.control-segmented .el-segmented__item { padding:0 9px; border-radius:4px; }
+.control-segmented .el-segmented__item-selected { border-radius:4px; box-shadow:var(--shadow-control); }
+.control-segmented .el-segmented__item.is-selected.is-disabled { color:var(--faint); }
+.control-segmented .el-segmented__item-selected.is-focus-visible::before { outline-color:var(--brand); outline-offset:0; }
+
+/* 自定义切换栏与 Element Plus 控件使用相同尺寸和状态。 */
+:is(.tc-severity-filter, .tc-density, .ef-scopes, .device-status-filters, .device-view-switch) {
+  display:inline-flex; align-items:center; box-sizing:border-box; height:var(--control-height);
+  gap:2px; padding:3px; border:1px solid var(--line); border-radius:var(--control-radius); background:var(--surface-soft);
+}
+:is(.tc-severity-filter, .tc-density, .ef-scopes, .device-status-filters, .device-view-switch) > button {
+  display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+  height:var(--control-segment-height); min-height:var(--control-segment-height); padding:0 10px;
+  border:1px solid transparent; border-radius:5px; background:transparent; color:var(--muted);
+  font-size:var(--control-font-size); line-height:20px; cursor:pointer; white-space:nowrap;
+}
+:is(.tc-density, .ef-scopes, .device-status-filters, .device-view-switch) > button:is(.active, .selected) {
+  color:var(--brand); background:var(--panel); border-color:var(--brand-line); box-shadow:var(--shadow-control);
+}
+:is(.tc-severity-filter, .tc-density, .ef-scopes, .device-status-filters, .device-view-switch) > button:hover { background:var(--panel); }
+:is(.tc-density, .ef-scopes, .device-status-filters, .device-view-switch) > button:hover { color:var(--brand); }
+:is(.tc-severity-filter, .tc-density, .ef-scopes, .device-status-filters, .device-view-switch) > button:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
+:is(.filters, .rl-filters, .sa-filters, .inventory-toolbar, .ef-primary-tools, .tc-search-row) { column-gap:var(--control-gap); }
+.dec-tag { display:inline-flex; align-items:center; min-height:26px; box-sizing:border-box; border-radius:6px; font-size:12px; font-weight:400; line-height:18px; padding:3px 8px; vertical-align:top; }
+.sev-tag { display:inline-flex; align-items:center; gap:6px; min-height:26px; box-sizing:border-box; border-radius:6px; font-family:inherit; font-size:12px; font-weight:400; line-height:16px; letter-spacing:0; padding:4px 8px; white-space:nowrap; }
+
+@media (prefers-reduced-motion:reduce) {
+  .el-button, .el-input__wrapper, .el-select__wrapper,
+  .el-switch .el-switch__core, .el-switch .el-switch__inner, .el-switch .el-switch__action,
+  .control-segmented .el-segmented__item-selected, .control-segmented .el-segmented__item-label { transition:none; }
+}

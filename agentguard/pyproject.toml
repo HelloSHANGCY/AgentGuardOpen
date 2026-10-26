@@ -1,0 +1,32 @@
+# 代码规范配置。依赖仍由 requirements*.txt 管理（Dockerfile 直接安装）。
+#   ruff check .            # 静态检查
+#   scripts/test.sh lint    # 同上，由仓库根目录调用
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = [
+    "tests/static_scan/fixtures",   # 扫描器测试样本，故意包含可疑写法
+    "console",
+    "endpoint/build",
+    "endpoint/dist",
+    "data",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I"]
+ignore = [
+    "E501",   # 行长暂不强制：存量长行集中在评测/测试数据，后续接入 ruff format 时统一收紧
+    "E731",   # 允许把 lambda 赋给变量作为简短回调
+    "B904",   # FastAPI 惯用 `raise HTTPException(...)`，不强制 from
+    "B905",   # zip 默认非严格即为预期语义
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agentguard", "agentguard_endpoint"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "E402",   # 测试需先调整 sys.path 再导入客户端模块
+    "B017",   # 部分用例只断言“会失败”
+]

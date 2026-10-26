@@ -1,0 +1,25 @@
+services:
+  shadow-agent:
+    build: .
+    privileged: true
+    environment:
+      MCP_SHADOW_SYNC: http://shadow-sync:8000/mcp
+      MCP_KNOWLEDGE: http://agentguard:8080/mcp/knowledge
+      LANGFLOW_BASE: http://langflow:7860
+      LANGFLOW_AUTO_LOGIN: "true"
+      JWT_SECRET: ${JWT_SECRET:-change-me-weak-secret}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc:/host-etc:ro
+    networks: [app-net]
+  mcp-shadow-sync:
+    build: ./mcp
+    environment:
+      SERVER: shadow.server
+    networks: [app-net]
+  langflow:
+    image: langflowai/langflow:1.0.0
+    networks: [app-net]
+networks:
+  app-net:
+    driver: bridge

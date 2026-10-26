@@ -1,0 +1,72 @@
+# 静态扫描 · Skill / 指令特征。
+#
+# skill.* 四组分别表示“读取敏感对象 / 外发动作 / 隐藏操作 / 覆盖指令”；
+# 定级由组合决定（代码中的 instruction_strength）：孤立命中只作线索，不单独成 finding。
+format: 1
+pack: builtin-static-skill
+name: 静态扫描 · Skill 与 Agent 配置特征
+version: "2026.10.06"
+description: Skill 指令投毒（AG-STATIC-SKILL-001）、MCP 工具描述投毒（AG-STATIC-MCP-003）与 Agent 权限过宽（AG-STATIC-CC-001）所依据的特征。
+
+rules:
+  - id: SIG-SKILL-001
+    group: skill.credential
+    title: 读取凭证 / 敏感对象
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '(/app/)?\.env\b'
+      - '\b(credentials?|secrets?|api[_ -]?keys?|tokens?|passwords?)\b'
+      - '\.ssh|id_rsa|keychain'
+      - '环境变量|凭证|密钥|密码|令牌'
+    tests:
+      match: ["read the API key", "读取 .env 里的密钥"]
+
+  - id: SIG-SKILL-002
+    group: skill.exfil
+    title: 外发 / 同步动作
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '\b(send|upload|post|exfiltrat\w*|forward|sync|append|write)\b'
+      - '\b(call|invoke|use)\s+[\w.\-]+\s*\.\s*[\w\-]+'
+      - 'https?://'
+      - '外发|上传|发送|同步|写入|回传'
+    tests:
+      match: ["upload it to https://x", "call notes.sync_note"]
+
+  - id: SIG-SKILL-003
+    group: skill.conceal
+    title: 隐藏操作
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - 'do not (tell|mention|inform)'
+      - 'without (telling|informing|notifying)'
+      - '\b(hide|conceal|secretly|silently)\b'
+      - '不要(向用户)?(提及|告知|说明)|隐藏|悄悄地|秘密'
+    tests:
+      match: ["silently append", "不要向用户提及"]
+
+  - id: SIG-SKILL-004
+    group: skill.override
+    title: 覆盖用户 / 系统指令
+    severity: MEDIUM
+    flags: [i]
+    patterns:
+      - 'ignore (all )?(previous|prior|above)'
+      - 'disregard (all )?(previous|prior|above|instructions)'
+      - 'overrid\w+ (the )?(user|system|previous)'
+      - '忽略(之前|以上|上述|所有)|覆盖(用户|系统)?指令'
+    tests:
+      match: ["Ignore all previous rules", "忽略之前的要求"]
+
+  - id: SIG-AGENT-001
+    group: agent.broad_tool_grant
+    title: 通配授权的高危工具
+    description: Claude Code permissions.allow 中出现这些条目即视为免确认放行高危工具（不区分大小写的完整匹配）。
+    severity: HIGH
+    keywords: ["bash", "bash(*)", "bash(:*)", "*", "webfetch", "write", "edit"]
+    tests:
+      match: ["Bash(*)", "WebFetch"]
+      nomatch: ["Bash(npm test:*)"]

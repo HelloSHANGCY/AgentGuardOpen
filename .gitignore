@@ -1,0 +1,40 @@
+# Python 缓存与虚拟环境
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+node_modules/
+
+# 根目录部署配置（包含管理令牌和密钥）；.env.example 保留入库
+/.env
+
+# 本地测试日志、JUnit 报告和隔离数据库
+/.test-results/
+# 运行时 SQLite（静态扫描、评测、运行时数据都写到数据目录，不入库）
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# 前端依赖（构建产物 dist 需要提交，供无 Node 环境运行）
+agentguard/console/node_modules/
+
+# 意图识别评测数据（来自第三方数据集的原始提示词，不进仓库）
+agentguard/data/intent/
+.venv-intent/
+
+# 终端客户端预构建包（build_linux.sh / build_windows.ps1 产物，经服务端 /v1/agents/client 提供下载）
+agentguard/endpoint/dist/
+
+# SWE-chat 正常会话评测数据（第三方原始会话记录，不进仓库）
+agentguard/data/benign/
+
+/26年网安揭榜挑战赛-赛题2-靶场AgentRange.zip

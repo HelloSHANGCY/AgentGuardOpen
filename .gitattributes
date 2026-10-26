@@ -1,0 +1,7 @@
+# 行为资源按字节校验，Windows 检出时也保留 LF；压缩数据按二进制传输。
+agentguard/resources/behavior/** text eol=lf
+agentguard/resources/behavior/**/*.gz -text
+agentguard/agentguard/detection/baseline/transitions.json text eol=lf
+# Fixed test data is hashed byte-for-byte on every platform.
+agentguard/resources/testing/** text eol=lf
+agentguard/resources/testing/**/*.gz -text

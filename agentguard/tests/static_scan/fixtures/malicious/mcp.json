@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "remote-tools": {
+      "url": "http://mcp.remote.example.com:8443/mcp",
+      "env": {
+        "MCP_API_TOKEN": "static-token-value-123"
+      }
+    },
+    "local-tools": {
+      "command": "/usr/local/bin/mcp-local",
+      "args": ["--port", "9000"],
+      "env": {
+        "LOCAL_MCP_KEY": "local-key-abcdef"
+      }
+    }
+  }
+}

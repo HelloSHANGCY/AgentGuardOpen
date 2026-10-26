@@ -1,0 +1,8 @@
+# 前端依赖与本地缓存不进入 Python 镜像（构建产物 dist 需要保留）。
+console/node_modules
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.test-results
+# 第三方原始记录、离线实验与登记暂存包通过持久化卷按需发布。
+data/benign

@@ -1,0 +1,127 @@
+{
+ "builtin": {
+  "path": "agentguard/detection/baseline/transitions.json",
+  "sha256": "01f0718dd879eca1fe834c3a99507ad808c59a8b3299a8b9f7e3a8f760ce0d7d"
+ },
+ "datasets": [
+  {
+   "archive": "datasets/swechat-quality-20261017/sessions.json.gz",
+   "holdout": {
+    "groups": 26,
+    "sessions": 37,
+    "steps": 3188
+   },
+   "id": "swechat-quality-20261017",
+   "manifest": "datasets/swechat-quality-20261017/manifest.json",
+   "payload_bytes": 34585799,
+   "train": {
+    "groups": 525,
+    "sessions": 2983,
+    "steps": 269850
+   }
+  }
+ ],
+ "evaluation": "evaluation.json",
+ "files": {
+  "NOTICE.md": {
+   "bytes": 1211,
+   "sha256": "c5e6f63a748b8fb1d555eb5923e2f50e60962c84092ccb8288c71012dc72dde2"
+  },
+  "README.md": {
+   "bytes": 4324,
+   "sha256": "7a65096cdd627684af6e8eb324463f71e2b719916097c231dda27435cec40c64"
+  },
+  "datasets/swechat-quality-20261017/manifest.json": {
+   "bytes": 5111,
+   "sha256": "d63212764ad337631e0a150fb6e39109bf8dbb76b24f52b8b4a23132a2a08eb8"
+  },
+  "datasets/swechat-quality-20261017/sessions.json.gz": {
+   "bytes": 1117263,
+   "sha256": "e130262954d4f531543902690f1b25ce8842881ab288d712e8fc1cbf982fb14c"
+  },
+  "evaluation.json": {
+   "bytes": 12538,
+   "sha256": "6adf2a1eb8e316e6a633920fe3df06f842adb31eef5268d5ce2b774a42113ea3"
+  },
+  "models/model-1000-balanced.json": {
+   "bytes": 39035,
+   "sha256": "0b6dabb8b8cc6817c273c5f5d42b78859496bb053629c7185a2e9f2629287b05"
+  },
+  "models/model-1000-raw.json": {
+   "bytes": 35568,
+   "sha256": "42c03b539e2907f4a79c2840740d8a0450f0a1a76c49f2510e16d5a355287d5c"
+  },
+  "models/model-263-balanced.json": {
+   "bytes": 27552,
+   "sha256": "7aeb78a907064610796ed341de8fe361395d8581a2417a0b3fd97cdbef5e4618"
+  },
+  "models/model-263-raw.json": {
+   "bytes": 25130,
+   "sha256": "1b2b5533cde7b321755c4c1d8c733cbc4e7c3f921a08c70c1ca5c39a09f07a51"
+  },
+  "models/model-3000-balanced.json": {
+   "bytes": 46231,
+   "sha256": "5a606a22a17abfde1e909e3ae9ed81c4bbc97c96e294a9d3f8d90685dc45a468"
+  },
+  "models/model-3000-raw.json": {
+   "bytes": 42145,
+   "sha256": "84b0eecae55b283c92b26617f68886207b41f1574f14452b306a150f5de25a84"
+  }
+ },
+ "format": 1,
+ "legacy_builtin": {
+  "path": "agentguard/detection/baseline/transitions.legacy.json",
+  "sha256": "a55d70c8fc599a0fc467f5cbbc58a31690b9628a043191a39d738ae106c6dd14"
+ },
+ "models": [
+  {
+   "assessment": "reject",
+   "name": "model-1000-balanced",
+   "path": "models/model-1000-balanced.json",
+   "training_sessions": 1000,
+   "version": "m20261017-100215-977b"
+  },
+  {
+   "assessment": "reject",
+   "name": "model-1000-raw",
+   "path": "models/model-1000-raw.json",
+   "training_sessions": 1000,
+   "version": "m20261017-100215-147f"
+  },
+  {
+   "assessment": "reject",
+   "name": "model-263-balanced",
+   "path": "models/model-263-balanced.json",
+   "training_sessions": 263,
+   "version": "m20261017-100214-d471"
+  },
+  {
+   "assessment": "reject",
+   "name": "model-263-raw",
+   "path": "models/model-263-raw.json",
+   "training_sessions": 263,
+   "version": "m20261017-100214-8a3e"
+  },
+  {
+   "assessment": "reject",
+   "name": "model-3000-balanced",
+   "path": "models/model-3000-balanced.json",
+   "training_sessions": 2983,
+   "version": "m20261017-100220-0760"
+  },
+  {
+   "assessment": "reject",
+   "name": "model-3000-raw",
+   "path": "models/model-3000-raw.json",
+   "training_sessions": 2983,
+   "version": "m20261017-100217-ab09"
+  }
+ ],
+ "source": {
+  "license": "ODC-BY-1.0",
+  "license_url": "https://opendatacommons.org/licenses/by/1-0/",
+  "name": "SALT-NLP/SWE-chat",
+  "revision": "202b071f18e03c79df5a7287565ce2ebc5ee7756",
+  "url": "https://huggingface.co/datasets/SALT-NLP/SWE-chat"
+ }
+}

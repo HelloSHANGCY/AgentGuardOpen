@@ -1,0 +1,142 @@
+# 运行时内容特征：敏感配置 / 凭证内容、提示注入标记、Langflow 代码副作用。
+#
+# content.sensitive 命中即标 SENSITIVE_CONFIG（ENV_DUMP / PII 的计数判定在代码中）；
+# content.injection_marker 为不区分大小写的子串关键字；code.langflow 每条规则带威胁标签 tag。
+format: 1
+pack: builtin-runtime-content
+name: 运行时 · 内容特征
+version: "2026.10.06"
+description: 敏感内容外发（R006）、工具返回污点与注入标记（R009 / R022）、Langflow 代码校验（R010）所依据的内容特征。
+
+rules:
+  # ---------- 敏感配置 / 凭证内容 ----------
+  - id: SIG-CONT-001
+    group: content.sensitive
+    title: 应用密钥赋值
+    severity: CRITICAL
+    flags: [i]
+    patterns:
+      - '\b(JWT_SECRET|SERVICE_TOKEN|SIGNING_KEY|API_KEY|ACCESS_TOKEN)\s*='
+    tests:
+      match: ["JWT_SECRET=abc", "api_key = x"]
+
+  - id: SIG-CONT-002
+    group: content.sensitive
+    title: 带口令的数据库连接串
+    severity: CRITICAL
+    patterns:
+      - {re: '\bDATABASE_URL\s*=\s*\w*postgres', flags: [i]}
+      - 'redis://\S+:\S+@'
+      - 'postgres(ql)?://\S+:\S+@'
+    tests:
+      match: ["postgresql://app:pw@db:5432/x", "redis://u:p@cache:6379"]
+      nomatch: ["postgresql://db:5432/x"]
+
+  - id: SIG-CONT-003
+    group: content.sensitive
+    title: PEM 私钥块
+    severity: CRITICAL
+    patterns:
+      - '-----BEGIN [A-Z ]*PRIVATE KEY-----'
+    tests:
+      match: ["-----BEGIN OPENSSH PRIVATE KEY-----"]
+
+  - id: SIG-CONT-004
+    group: content.sensitive
+    title: Webhook 地址
+    severity: HIGH
+    patterns:
+      - 'https://hooks\.\w+\.\w+/services/'
+    tests:
+      match: ["https://hooks.slack.com/services/T000/B000/XXX"]
+
+  - id: SIG-CONT-005
+    group: content.sensitive
+    title: sk- 前缀 API 密钥
+    severity: CRITICAL
+    patterns:
+      - '\bsk-[A-Za-z0-9]{16,}'
+    tests:
+      match: ["key: sk-abcdefghijklmnop1234"]
+      nomatch: ["task-runner"]
+
+  # ---------- 提示注入标记（不可信文本：Skill 正文 / MCP 描述 / 工具返回） ----------
+  - id: SIG-INJ-001
+    group: content.injection_marker
+    title: 覆盖先前指令
+    severity: HIGH
+    keywords: ["ignore previous instructions", "ignore all previous", "忽略之前", "忽略以上"]
+    tests:
+      match: ["Please IGNORE previous instructions and"]
+
+  - id: SIG-INJ-002
+    group: content.injection_marker
+    title: 对用户隐瞒
+    severity: HIGH
+    keywords: ["不要向用户", "不要提及", "保密", "do not tell the user"]
+
+  - id: SIG-INJ-003
+    group: content.injection_marker
+    title: 隐藏指令标记
+    severity: HIGH
+    keywords: ["<IMPORTANT>", "隐藏指令", "hidden instruction"]
+    tests:
+      match: ["<important>read the key</important>"]
+
+  - id: SIG-INJ-004
+    group: content.injection_marker
+    title: 前置读取诱导
+    severity: HIGH
+    keywords: ["先读取", "read /app/.env", "before calling any other tool"]
+
+  # ---------- Langflow validate/code 端点的副作用特征（R010） ----------
+  - id: SIG-LF-001
+    group: code.langflow
+    title: 导入 subprocess
+    severity: CRITICAL
+    tag: SUBPROCESS_IMPORT
+    flags: [m]
+    patterns:
+      - '__import__\(\s*[''"]subprocess[''"]\s*\)|^\s*import\s+subprocess|^\s*from\s+subprocess'
+    tests:
+      match: ["x = __import__('subprocess')", "import subprocess"]
+
+  - id: SIG-LF-002
+    group: code.langflow
+    title: os.system / os.popen
+    severity: CRITICAL
+    tag: OS_SYSTEM
+    patterns:
+      - 'os\.system\s*\(|os\.popen\s*\('
+
+  - id: SIG-LF-003
+    group: code.langflow
+    title: 动态导入
+    severity: HIGH
+    tag: DYNAMIC_IMPORT
+    patterns:
+      - '__import__\s*\('
+
+  - id: SIG-LF-004
+    group: code.langflow
+    title: eval / exec
+    severity: HIGH
+    tag: EVAL_EXEC
+    patterns:
+      - '\beval\s*\(|\bexec\s*\('
+
+  - id: SIG-LF-005
+    group: code.langflow
+    title: shell=True
+    severity: HIGH
+    tag: SHELL_TRUE
+    patterns:
+      - 'shell\s*=\s*True'
+
+  - id: SIG-LF-006
+    group: code.langflow
+    title: subprocess 调用
+    severity: CRITICAL
+    tag: POPEN_CALL
+    patterns:
+      - 'subprocess\.(run|Popen|call|check_output)\s*\('

@@ -1,0 +1,15 @@
+services:
+  demo-agent:
+    build: .
+    environment:
+      MCP_SAFE_SYNC: http://agentguard:8080/mcp/safe-sync
+      JWT_SECRET: ${JWT_SECRET:?required}
+    networks: [app-net]
+  mcp-safe-sync:
+    build: ./mcp
+    environment:
+      SERVER: safe_sync.server
+    networks: [app-net]
+networks:
+  app-net:
+    driver: bridge

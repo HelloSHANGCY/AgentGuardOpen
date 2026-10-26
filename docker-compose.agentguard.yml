@@ -1,0 +1,39 @@
+# Standalone AgentGuard service. Register external MCP services explicitly.
+services:
+  agentguard:
+    build: ./agentguard
+    environment:
+      AG_HOOK_SECRET: ${AG_HOOK_SECRET:-agentguard-dev-secret}
+      AG_LOCAL_TEST: ${AG_LOCAL_TEST:-1}
+      AG_AGENT_ADMIN_TOKEN: ${AG_AGENT_ADMIN_TOKEN:-}
+      AG_AGENT_DEVICE_DIR: /app/data/agent-devices
+      AG_STATIC_DB: /app/data/static-scan/static-scan.db
+      AG_STATIC_ADMIN_TOKEN: ${AG_STATIC_ADMIN_TOKEN:-}
+      AG_STATIC_SOURCES: ${AG_STATIC_SOURCES:-}
+      AG_STATIC_ROOTS: ${AG_STATIC_ROOTS:-}
+      AG_MANAGED_MCP_SERVERS: ${AG_MANAGED_MCP_SERVERS:-}
+      AG_EXTRA_UPSTREAMS: ${AG_EXTRA_UPSTREAMS:-}
+      AG_C2_HOSTS: ${AG_C2_HOSTS:-}
+      AG_INTENT_LLM_KEY: ${AG_INTENT_LLM_KEY:-}
+      AG_INTENT_LLM_URL: ${AG_INTENT_LLM_URL:-}
+      AG_INTENT_LLM_MODEL: ${AG_INTENT_LLM_MODEL:-}
+      AG_INTENT_LLM_TIMEOUT: ${AG_INTENT_LLM_TIMEOUT:-3}
+      AG_EVAL_ADMIN_TOKEN: ${AG_EVAL_ADMIN_TOKEN:-}
+      AG_EVAL_DB: /app/data/evaluations/jobs.db
+      AG_EVAL_GATEWAY: http://127.0.0.1:8080
+      AG_EVAL_TIMEOUT: ${AG_EVAL_TIMEOUT:-1800}
+    volumes:
+      - evaluation-data:/app/data/evaluations
+      - static-scan-data:/app/data/static-scan
+      - agent-device-data:/app/data/agent-devices
+    ports: ["127.0.0.1:18080:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  evaluation-data:
+  static-scan-data:
+  agent-device-data:

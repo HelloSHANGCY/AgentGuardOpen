@@ -1,0 +1,395 @@
+# 运行时路径特征：主机凭证库、项目密钥文件、Agent 配置、持久化位置。
+#
+# 匹配对象是规范化后的路径（URL 解码、NFKC、反斜杠统一为 /、~ 展开、. / .. 折叠）；
+# Windows 盘符路径额外按小写再匹配一次。正则用 YAML 单引号书写，反斜杠无需转义。
+# 每条规则的 tests 在加载时自检：match 中的样本必须命中，nomatch 中的不得命中。
+format: 1
+pack: builtin-runtime-paths
+name: 运行时 · 路径特征
+version: "2026.10.06"
+description: 凭证库读取（R002）、Agent 配置篡改（R017）、持久化写入（R019）所依据的路径特征，同时下发终端快速判定。
+
+rules:
+  # ---------- 主机凭证库：任何策略档案下读取都拒绝 ----------
+  - id: SIG-CRED-001
+    group: path.credential_store
+    title: SSH 私钥与目录
+    severity: CRITICAL
+    flags: [i]
+    patterns:
+      - '/\.ssh/'
+      - '(^|/)(id_rsa|id_ed25519|id_ecdsa|id_dsa)(\.pub)?$'
+    tests:
+      match: ["~/.ssh/config", "/home/dev/keys/id_ed25519"]
+      nomatch: ["/home/dev/project/ssh_helper.py"]
+
+  - id: SIG-CRED-002
+    group: path.credential_store
+    title: 云平台与集群凭证
+    description: AWS / GCP / Azure / Kubernetes / Docker 登录凭证。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.aws/(credentials|config)$'
+      - '(^|/)\.config/gcloud/'
+      - '(^|/)\.azure/'
+      - '(^|/)\.kube/config$'
+      - '(^|/)\.docker/config\.json$'
+      - {re: '/appdata/roaming/gcloud/', flags: [i]}
+    tests:
+      match: ["~/.aws/credentials", "~/.kube/config", "C:\\Users\\dev\\AppData\\Roaming\\gcloud\\credentials.db"]
+      nomatch: ["/srv/app/aws_client.py"]
+
+  - id: SIG-CRED-003
+    group: path.credential_store
+    title: 包源与开发工具令牌
+    description: netrc、git-credentials、npm / PyPI / PostgreSQL / MySQL / Vault 客户端配置与 gh CLI 登录。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.(netrc|git-credentials|npmrc|pypirc|pgpass|my\.cnf|vault-token)$'
+      - '(^|/)\.config/gh/hosts\.yml$'
+    tests:
+      match: ["~/.git-credentials", "/root/.npmrc", "~/.config/gh/hosts.yml"]
+      nomatch: ["/srv/app/.npmrc.bak"]
+
+  - id: SIG-CRED-004
+    group: path.credential_store
+    title: 凭证目录整体读取
+    description: tar czf k.tgz ~/.ssh、grep -r . ~/.aws、cp -r ~/.gnupg /tmp 这类对凭证目录本身的读取。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.(ssh|aws|gnupg|azure|kube|docker)$'
+      - '(^|/)\.config/(gcloud|gh)$'
+    tests:
+      match: ["~/.ssh", "/home/dev/.aws", "~/.config/gcloud"]
+      nomatch: ["/home/dev/.sshrc"]
+
+  - id: SIG-CRED-005
+    group: path.credential_store
+    title: GPG 密钥环
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.gnupg/'
+    tests:
+      match: ["~/.gnupg/private-keys-v1.d/a.key"]
+
+  - id: SIG-CRED-006
+    group: path.credential_store
+    title: AgentGuard 自身令牌与配置
+    description: 设备令牌、终端配置与系统级配置；被读取即可伪造上报。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.agentguard/'
+      - '^/etc/agentguard/'
+      - {re: '^[a-z]:/programdata/agentguard/', flags: [i]}
+    tests:
+      match: ["~/.agentguard/config.json", "/etc/agentguard/endpoint.json", "C:\\ProgramData\\AgentGuard\\config.json"]
+
+  - id: SIG-CRED-007
+    group: path.credential_store
+    title: 编码 Agent 登录凭证
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.codex/auth\.json$'
+      - '(^|/)\.claude/\.credentials\.json$'
+      # ZCode 桌面端：登录凭证与模型供应商 API Key。
+      - '(^|/)\.zcode/v2/(credentials|provider_config|config)\.json$'
+      # WorkBuddy / CodeBuddy Code：登录凭证目录与自定义模型配置（含供应商 API Key）。
+      - '(^|/)\.(workbuddy(-ai)?|codebuddy)/credentials/'
+      - '(^|/)\.(workbuddy(-ai)?|codebuddy)/models\.json$'
+    tests:
+      match: ["~/.codex/auth.json", "~/.claude/.credentials.json", "~/.zcode/v2/credentials.json",
+              "C:\\Users\\dev\\.zcode\\v2\\config.json", "~/.workbuddy/credentials/token.json",
+              "~/.codebuddy/models.json", "C:\\Users\\dev\\.workbuddy\\models.json",
+              "~/.workbuddy-ai/credentials/token.json", "C:\\Users\\dev\\.workbuddy-ai\\models.json"]
+      nomatch: ["~/.claude/settings.json", "~/.zcode/v2/setting.json", "~/.workbuddy/skills/models.json",
+                "~/.workbuddy-ai/skills/models.json", "/repo/docs/models.json"]
+
+  - id: SIG-CRED-008
+    group: path.credential_store
+    title: 进程环境变量
+    severity: CRITICAL
+    flags: [i]
+    patterns:
+      - '/proc/(self|\d+)/environ$'
+    tests:
+      match: ["/proc/self/environ", "/proc/1/environ"]
+
+  - id: SIG-CRED-009
+    group: path.credential_store
+    title: 系统口令与 sudo 配置
+    severity: CRITICAL
+    flags: [i]
+    patterns:
+      - '/etc/(shadow|sudoers)$'
+    tests:
+      match: ["/etc/shadow"]
+      nomatch: ["/etc/passwd"]
+
+  - id: SIG-CRED-010
+    group: path.credential_store
+    title: Windows 浏览器保存的密码与 Cookie
+    severity: CRITICAL
+    flags: [i]
+    patterns:
+      - '/appdata/local/(google/chrome|microsoft/edge|bravesoftware/brave-browser)/user data/[^/]+/(login data|cookies|network/cookies)$'
+      - '/appdata/local/(google/chrome|microsoft/edge)/user data/local state$'
+      - '/appdata/roaming/mozilla/firefox/profiles/[^/]+/(logins\.json|key[34]\.db|cookies\.sqlite)$'
+    tests:
+      match: ["C:\\Users\\dev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data"]
+
+  - id: SIG-CRED-011
+    group: path.credential_store
+    title: Windows 凭据管理器与 SAM 配置单元
+    severity: CRITICAL
+    flags: [i]
+    patterns:
+      - '/appdata/(roaming|local)/microsoft/(credentials|protect|vault)/'
+      - '^[a-z]:/windows/system32/config/(sam|security|system)$'
+    tests:
+      match: ["C:\\Windows\\System32\\config\\SAM", "C:\\Users\\dev\\AppData\\Roaming\\Microsoft\\Protect\\S-1-5\\key"]
+
+  # ---------- 项目密钥文件：按策略档案确认或拒绝 ----------
+  - id: SIG-SECRET-001
+    group: path.sensitive
+    title: 环境变量文件（.env）
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '(^|/)\.env($|\.)'
+    tests:
+      match: ["/app/.env", "./.env.production"]
+      nomatch: ["/app/environment.py"]
+
+  - id: SIG-SECRET-002
+    group: path.sensitive
+    title: secrets / credentials 目录与文件
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '(^|/)(secrets?|credentials?)(/|$|\.|$)'
+    tests:
+      match: ["/app/secrets/db.txt", "config/credentials.json"]
+
+  - id: SIG-SECRET-003
+    group: path.sensitive
+    title: 证书与私钥文件
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '\.(pem|key|pfx|p12)$'
+    tests:
+      match: ["/srv/tls/server.key", "cert.PEM"]
+
+  - id: SIG-SECRET-004
+    group: path.sensitive
+    title: SSH 密钥文件名
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '(^|/)(id_rsa|id_ed25519|authorized_keys|known_hosts)$'
+      - '/\.ssh/'
+
+  - id: SIG-SECRET-005
+    group: path.sensitive
+    title: 系统敏感文件
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '/proc/self/environ$'
+      - '/etc/(shadow|passwd|sudoers)$'
+    tests:
+      match: ["/etc/passwd"]
+
+  - id: SIG-SECRET-006
+    group: path.secret_name_hint
+    title: 文件名敏感关键字（宽松）
+    description: 仅凭文件名中的 webhook / signing key / api key 判定；service 业务档案使用，开发机上会误伤 api_key_validator.py 这类源码。
+    severity: MEDIUM
+    flags: [i]
+    patterns:
+      - 'webhook|signing[_-]?key|api[_-]?key'
+    tests:
+      match: ["/app/config/webhook.txt", "signing_key.txt"]
+
+  # ---------- Agent / AgentGuard 配置：被 Agent 自己改写即可关闭防护（R017） ----------
+  - id: SIG-ACFG-001
+    group: path.agent_config
+    title: Claude Code 配置、Hook 与受管设置
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.claude/settings(\.local)?\.json$'
+      - '(^|/)\.claude\.json$'
+      - '(^|/)\.mcp\.json$'
+      - '(^|/)\.claude/hooks/'
+      - '^/etc/claude-code/'
+      - '/Library/Application Support/ClaudeCode/'
+      - {re: '^[a-z]:/(program files|programdata)/claudecode/', flags: [i]}
+    tests:
+      match: ["~/.claude/settings.json", "/repo/.mcp.json", "/etc/claude-code/managed-settings.json"]
+      nomatch: ["/repo/docs/claude.md"]
+
+  - id: SIG-ACFG-002
+    group: path.agent_config
+    title: Codex 配置、Hook 与受管配置
+    description: 用户 / 项目配置、Hook 定义与信任状态（config.toml 的 hooks.state）、受管配置。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.codex/(config\.toml|hooks\.json|requirements\.toml|managed_config\.toml)$'
+      - '(^|/)\.codex/hooks/'
+      - '^/etc/codex/'
+    tests:
+      match: ["~/.codex/config.toml", "/etc/codex/requirements.toml"]
+
+  - id: SIG-ACFG-004
+    group: path.agent_config
+    title: Trae Hook 与 MCP 配置
+    description: 全局（~/.trae-cn、~/.trae）与项目级（.trae/）Hook 定义和 MCP 配置，以及用户目录下的 mcp.json / settings.json。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.trae(-cn)?/(hooks|mcp)\.json$'
+      - '(^|/)\.trae(-cn)?/hooks/'
+      - {re: '/trae( cn)?/user/(mcp|settings)\.json$', flags: [i]}
+    tests:
+      match: ["~/.trae-cn/hooks.json", "/repo/.trae/hooks.json", "/repo/.trae/mcp.json",
+              "C:\\Users\\dev\\AppData\\Roaming\\Trae CN\\User\\mcp.json"]
+      nomatch: ["/repo/.trae/rules/project_rules.md", "/repo/docs/hooks.json"]
+
+  - id: SIG-ACFG-005
+    group: path.agent_config
+    title: Qoder Hook 与 MCP 配置
+    description: 用户级（~/.qoder、~/.qoder-cn、旧版 ~/.lingma、~/.qoderwork）与项目级（.qoder/）的 settings.json（含 Hook 定义）、settings.local.json 与 mcp.json，以及 IDE 用户目录下的 mcp.json / settings.json。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.(qoder(-cn)?|lingma|qoderwork)/(settings(\.local)?|mcp)\.json$'
+      - '(^|/)\.(qoder(-cn)?|lingma|qoderwork)/hooks/'
+      - {re: '/qoder ?(cn)?/user/(mcp|settings)\.json$', flags: [i]}
+    tests:
+      match: ["~/.qoder-cn/settings.json", "~/.qoder/settings.json", "/repo/.qoder/settings.local.json",
+              "~/.lingma/settings.json", "/repo/.qoder/hooks/check.sh",
+              "C:\\Users\\dev\\AppData\\Roaming\\QoderCN\\User\\settings.json"]
+      nomatch: ["/repo/.qoder/rules/project.md", "/repo/.qoder/repowiki/wiki_plan.yaml", "/repo/docs/settings.json"]
+
+  - id: SIG-ACFG-006
+    group: path.agent_config
+    title: ZCode 配置、Hook 与插件
+    description: 用户级配置 ~/.zcode/cli/config.json（Hook 定义与总开关、MCP server、权限规则）、项目级 .zcode/config.json 与 zcode.json，以及已安装插件（插件可自带 hooks/hooks.json）与插件市场登记。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.zcode/(cli/)?config\.json$'
+      - '(^|/)zcode\.json$'
+      - '(^|/)\.zcode/cli/plugins/(installed_plugins|known_marketplaces)\.json$'
+      - '(^|/)\.zcode/cli/plugins/(cache|marketplaces)/'
+    tests:
+      match: ["~/.zcode/cli/config.json", "/repo/.zcode/config.json", "/repo/zcode.json",
+              "~/.zcode/cli/plugins/installed_plugins.json",
+              "~/.zcode/cli/plugins/cache/acme/tool/1.0.0/hooks/hooks.json",
+              "C:\\Users\\dev\\.zcode\\cli\\config.json"]
+      nomatch: ["/repo/.zcode/skills/review/SKILL.md", "/repo/docs/zcode.md", "~/.zcode/cli/plugins/data/acme/state.json",
+                "~/.zcode/cli/log/zcode-2026-08-22.jsonl"]
+
+  - id: SIG-ACFG-007
+    group: path.agent_config
+    title: WorkBuddy / CodeBuddy 配置、Hook 与插件
+    description: 用户级与项目级 .workbuddy-ai、.workbuddy、.codebuddy 下的 settings.json（Hook 定义、disableAllHooks、权限规则）、settings.local.json 与 MCP 配置，以及插件登记与已安装插件（插件可自带 hooks）。
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.(workbuddy(-ai)?|codebuddy)/(settings(\.local)?|\.?mcp)\.json$'
+      - '(^|/)\.(workbuddy(-ai)?|codebuddy)/hooks/'
+      - '(^|/)\.(workbuddy(-ai)?|codebuddy)/plugins/(installed_plugins|known_marketplaces)\.json$'
+      - '(^|/)\.(workbuddy(-ai)?|codebuddy)/plugins/(cache|marketplaces)/'
+    tests:
+      match: ["~/.workbuddy/settings.json", "~/.codebuddy/settings.json", "/repo/.codebuddy/settings.local.json",
+              "/repo/.workbuddy/.mcp.json", "~/.codebuddy/mcp.json", "/repo/.codebuddy/hooks/check.sh",
+              "~/.workbuddy/plugins/installed_plugins.json",
+              "~/.workbuddy/plugins/cache/acme/tool/1.0.0/hooks/hooks.json",
+              "C:\\Users\\dev\\.workbuddy\\settings.json", "C:\\Users\\dev\\.workbuddy-ai\\settings.json",
+              "~/.workbuddy-ai/settings.local.json", "~/.workbuddy-ai/.mcp.json",
+              "~/.workbuddy-ai/hooks/check.sh", "~/.workbuddy-ai/plugins/installed_plugins.json",
+              "~/.workbuddy-ai/plugins/cache/acme/tool/1.0.0/hooks/hooks.json"]
+      nomatch: ["/repo/.codebuddy/rules/project.md", "/repo/.codebuddy/skills/review/SKILL.md", "/repo/CODEBUDDY.md",
+                "~/.workbuddy/logs/2026-10-11.log", "~/.workbuddy/projects/abc/session.jsonl",
+                "~/.workbuddy-ai/logs/2026-10-11.log", "/repo/.workbuddy-ai/skills/review/SKILL.md",
+                "/repo/.workbuddy-aide/settings.json", "/repo/docs/settings.json"]
+
+  - id: SIG-ACFG-003
+    group: path.agent_config
+    title: AgentGuard 终端客户端与配置
+    severity: CRITICAL
+    patterns:
+      - '(^|/)\.agentguard/'
+      - '^/etc/agentguard/'
+      - '(^|/)agentguard[-_](cc[-_]hook|mcp[-_]stdio)(\.py)?$'
+      - {re: '^[a-z]:/(program files( \(x86\))?|programdata)/agentguard/', flags: [i]}
+      - '^/opt/agentguard/'
+      - {re: '/appdata/local/programs/agentguard/', flags: [i]}
+    tests:
+      match: ["/opt/agentguard/bin/agentguard-endpoint", "~/bin/agentguard_cc_hook.py",
+              "C:\\Program Files\\AgentGuard\\endpoint.exe"]
+
+  # ---------- 持久化位置（R019） ----------
+  - id: SIG-PERS-001
+    group: path.persistence
+    title: Shell 启动脚本
+    severity: HIGH
+    patterns:
+      - '(^|/)\.(bashrc|bash_profile|bash_login|profile|zshrc|zprofile|zshenv|zlogin|kshrc)$'
+      - '(^|/)\.config/fish/'
+      - '^/etc/(profile|bash\.bashrc|environment|rc\.local)'
+      - '^/etc/profile\.d/'
+    tests:
+      match: ["~/.bashrc", "/etc/profile.d/proxy.sh"]
+      nomatch: ["/repo/.bashrc.example.md"]
+
+  - id: SIG-PERS-002
+    group: path.persistence
+    title: 定时任务与系统服务
+    severity: HIGH
+    patterns:
+      - '^/(etc/cron|var/spool/cron)'
+      - '(^|/)\.config/systemd/user/'
+      - '^/etc/systemd/'
+    tests:
+      match: ["/etc/cron.d/backup", "~/.config/systemd/user/agent.service"]
+
+  - id: SIG-PERS-003
+    group: path.persistence
+    title: 登录项与桌面自启动
+    severity: HIGH
+    patterns:
+      - '/Library/(LaunchAgents|LaunchDaemons)/'
+      - '(^|/)\.config/autostart/'
+    tests:
+      match: ["~/Library/LaunchAgents/com.x.plist"]
+
+  - id: SIG-PERS-004
+    group: path.persistence
+    title: Git hooks
+    severity: HIGH
+    patterns:
+      - '(^|/)\.git/hooks/'
+    tests:
+      match: ["/repo/.git/hooks/pre-commit"]
+
+  - id: SIG-PERS-005
+    group: path.persistence
+    title: SSH 授权与客户端配置
+    severity: HIGH
+    patterns:
+      - '(^|/)\.ssh/(authorized_keys|config|rc)$'
+    tests:
+      match: ["~/.ssh/authorized_keys"]
+
+  - id: SIG-PERS-006
+    group: path.persistence
+    title: Windows 启动文件夹、PowerShell 配置文件、计划任务与注册表自启动
+    description: 注册表操作由命令展开为 HKCU/... 形式的伪路径（见 capability）。
+    severity: HIGH
+    flags: [i]
+    patterns:
+      - '/microsoft/windows/start menu/programs/startup/'
+      - '/documents/(windows)?powershell/([a-z0-9.]+_)?profile\.ps1$'
+      - '^[a-z]:/windows/system32/(tasks|grouppolicy)/'
+      - '^(hkcu|hklm|hkey_current_user|hkey_local_machine)/software/(wow6432node/)?microsoft/windows/currentversion/(run|runonce|policies/explorer/run)(/|$)'
+      - '^(hkcu|hklm|hkey_current_user|hkey_local_machine)/software/microsoft/windows nt/currentversion/(winlogon|image file execution options)(/|$)'
+    tests:
+      match: ["HKCU/Software/Microsoft/Windows/CurrentVersion/Run/updater", "$PROFILE"]

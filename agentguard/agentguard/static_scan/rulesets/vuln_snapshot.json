@@ -1,0 +1,62 @@
+{
+  "db_version": "bundled-osv-demo-2026.09.25",
+  "generated_at": "2026-09-25T00:00:00Z",
+  "source": "bundled-offline-snapshot",
+  "max_age_days": 3650,
+  "entries": [
+    {
+      "id": "CVE-2024-35195",
+      "ecosystem": "pypi",
+      "name": "requests",
+      "affected": "<2.32.0",
+      "fixed": "2.32.0",
+      "severity": "MEDIUM",
+      "published": "2024-05-20",
+      "summary": "Session 在证书校验失败后仍复用连接，可能导致证书验证被绕过"
+    },
+    {
+      "id": "CVE-2020-14343",
+      "ecosystem": "pypi",
+      "name": "pyyaml",
+      "affected": "<5.4",
+      "fixed": "5.4",
+      "severity": "HIGH",
+      "published": "2020-03-20",
+      "summary": "FullLoader 允许通过构造的 YAML 执行任意代码"
+    },
+    {
+      "id": "CVE-2022-29217",
+      "ecosystem": "pypi",
+      "name": "pyjwt",
+      "affected": "<2.4.0",
+      "fixed": "2.4.0",
+      "severity": "HIGH",
+      "published": "2022-05-24",
+      "summary": "密钥类型混淆可能导致签名校验绕过"
+    },
+    {
+      "id": "CVE-2024-34064",
+      "ecosystem": "pypi",
+      "name": "jinja2",
+      "affected": "<3.1.4",
+      "fixed": "3.1.4",
+      "severity": "MEDIUM",
+      "published": "2024-05-06",
+      "summary": "xmlattr 过滤器存在属性注入风险"
+    },
+    {
+      "id": "CVE-2021-23337",
+      "ecosystem": "npm",
+      "name": "lodash",
+      "affected": "<4.17.21",
+      "fixed": "4.17.21",
+      "severity": "HIGH",
+      "published": "2021-02-15",
+      "summary": "template 命令注入"
+    }
+  ],
+  "notes": [
+    "离线演示快照，仅用于离线可重复评测；生产使用应由受控任务刷新 OSV 数据",
+    "未命中不代表安全，只表示快照范围内未发现已知漏洞"
+  ]
+}

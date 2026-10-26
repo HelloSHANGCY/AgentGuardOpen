@@ -1,0 +1,93 @@
+# 静态扫描 · 配置基线特征。
+#
+# config.sensitive_mount 每条规则的 severity 即挂载命中的定级，按规则顺序取第一条命中；
+# 关键字组均不区分大小写：auth_* / weak_secret 为完整匹配，secret_key_hint / weak_secret_marker 为子串匹配。
+format: 1
+pack: builtin-static-config
+name: 静态扫描 · 配置基线特征
+version: "2026.10.06"
+description: 弱密钥（AG-STATIC-CFG-001）、鉴权关闭（CFG-002）、宿主敏感挂载（CFG-003）所依据的键名、取值与路径特征。
+
+rules:
+  # ---------- 宿主敏感挂载（CFG-003） ----------
+  - id: SIG-MOUNT-001
+    group: config.sensitive_mount
+    title: 挂载 Docker socket
+    severity: CRITICAL
+    patterns:
+      - '/var/run/docker\.sock'
+    tests:
+      match: ["/var/run/docker.sock:/var/run/docker.sock"]
+
+  - id: SIG-MOUNT-002
+    group: config.sensitive_mount
+    title: 挂载宿主系统目录
+    severity: HIGH
+    patterns:
+      - '^/($|etc|root|proc|var|home)(/|$)'
+    tests:
+      match: ["/etc/ssl:/certs:ro", "/home/dev/data:/data"]
+      nomatch: ["./data:/app/data"]
+
+  - id: SIG-MOUNT-003
+    group: config.sensitive_mount
+    title: 挂载凭证目录
+    severity: HIGH
+    patterns:
+      - '\.ssh|\.aws|\.kube|\.docker/config\.json'
+    tests:
+      match: ["~/.aws:/root/.aws:ro"]
+
+  # ---------- 鉴权关闭（CFG-002） ----------
+  - id: SIG-AUTH-001
+    group: config.auth_off_when_true
+    title: 自动登录开关
+    description: 取值为 true / 1 / yes / on / enabled 时视为鉴权关闭。
+    severity: HIGH
+    keywords: ["LANGFLOW_AUTO_LOGIN", "LANGFLOW_SKIP_AUTH_AUTO_LOGIN", "AUTO_LOGIN", "SKIP_AUTH"]
+
+  - id: SIG-AUTH-002
+    group: config.auth_off_when_true
+    title: 关闭鉴权开关
+    severity: HIGH
+    keywords: ["DISABLE_AUTH", "DISABLE_LOGIN"]
+
+  - id: SIG-AUTH-003
+    group: config.auth_off_when_false
+    title: 鉴权启用开关
+    description: 取值不是 true / 1 / yes / on / enabled 时视为鉴权关闭。
+    severity: HIGH
+    keywords: ["AUTH_ENABLED"]
+
+  # ---------- 弱密钥（CFG-001） ----------
+  - id: SIG-SKEY-001
+    group: config.secret_key_hint
+    title: 密钥类键名
+    description: 键名包含这些片段时按密钥检查取值。
+    severity: MEDIUM
+    keywords: ["secret", "token", "password", "passwd", "credential", "api_key", "apikey",
+               "access_key", "private_key", "jwt", "auth", "signing", "webhook", "dsn"]
+    tests:
+      match: ["JWT_SECRET", "db_password"]
+      nomatch: ["LOG_LEVEL"]
+
+  - id: SIG-WEAK-001
+    group: config.weak_secret
+    title: 默认 / 示例弱密钥取值
+    description: 仅用于识别可公开的示例与默认值，不包含真实生产凭证。
+    severity: HIGH
+    keywords: ["change-me-weak-secret", "change-me", "changeme", "changeit", "admin", "password", "passw0rd",
+               "secret", "test", "dev", "development", "opspilot", "agentguard-dev-secret", "postgres", "root",
+               "123456", "token", "default"]
+    tests:
+      match: ["Admin", "agentguard-dev-secret"]
+      nomatch: ["k8Qz3pL0vT9wX2"]
+
+  - id: SIG-WEAK-002
+    group: config.weak_secret_marker
+    title: 占位符片段
+    description: 取值包含这些片段即视为未替换的占位符。
+    severity: HIGH
+    keywords: ["change-me", "changeme", "placeholder", "your_", "your-", "example", "default", "xxxx"]
+    tests:
+      match: ["your-api-key-here", "sk-xxxx"]
