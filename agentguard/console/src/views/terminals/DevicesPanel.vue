@@ -182,9 +182,13 @@
         <el-radio-button value="token">签发令牌</el-radio-button>
       </el-radio-group>
       <template v-if="!issued && registerMode === 'enroll'">
-
-        <a href="#/terminals/deploy" @click.prevent="openDeploy">修改配置</a>
-        <el-radio-group v-model="platform" size="small">
+        <div class="register-install-head">
+          <span class="register-install-note">安装命令按客户端部署配置生成</span>
+          <el-button link type="primary" size="small" class="register-config-link" @click="openDeploy">
+            <el-icon class="btn-ic" aria-hidden="true"><SetUp /></el-icon>修改配置
+          </el-button>
+        </div>
+        <el-radio-group v-model="platform" size="small" class="register-platforms" aria-label="终端操作系统">
           <el-radio-button value="windows">Windows</el-radio-button>
           <el-radio-button value="linux">Linux</el-radio-button>
           <el-radio-button value="macos">macOS</el-radio-button>
@@ -238,7 +242,7 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { DocumentCopy, Download, Grid, Tickets } from "../../icons";
+import { DocumentCopy, Download, Grid, SetUp, Tickets } from "../../icons";
 import { tab, terminalTab, AGENT_NAMES } from "../../store/runtime";
 import { prepareDeviceStaticScan } from "../../store/static";
 import { scanChannelState } from "../../utils/staticText";
@@ -512,6 +516,10 @@ function openDeploy() {
 .device-control-details .overridden small { color: var(--brand); }
 .device-config-form :deep(.el-form-item) { margin-bottom:10px; }
 .device-config-form :deep(.el-form-item__content) { min-width:0; }
+.register-install-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; margin-bottom:10px; }
+.register-install-note { color:var(--muted); font-size:12px; }
+.register-config-link { flex:none; }
+.register-platforms { margin-bottom:2px; }
 .device-config-form :deep(.el-form-item__label) { padding-right:14px; }
 .device-config-agents { display:flex; flex-wrap:wrap; gap:0 16px; }
 .device-config-agents :deep(.el-checkbox) { margin-right:0; }

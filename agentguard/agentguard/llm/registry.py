@@ -11,6 +11,7 @@ import urllib.parse
 import uuid
 
 from .client import EFFORTS, MODEL_RE, chat_json, clean_key, clean_url, error_text
+from .discovery import discover_models
 from .providers import PRESETS, validate_connection
 
 PURPOSES = {
@@ -225,6 +226,29 @@ class ModelRegistry:
             models = copy.deepcopy(self._models)
             del models[model_id]
             self._commit(models, copy.deepcopy(self._bindings))
+
+    def discover(self, config, model_id=None):
+        if not isinstance(config, dict):
+            raise ValueError("config must be an object")
+        self._seed_legacy()
+        with self._lock:
+            previous = None
+            if model_id is not None:
+                if model_id not in self._models:
+                    raise KeyError("model not found")
+                previous = self._models[model_id]
+            url = config.get("url") or (previous["url"] if previous else "")
+            key = config.get("key") or ""
+            if not isinstance(url, str) or not isinstance(key, str):
+                raise ValueError("url and key must be strings")
+            url = clean_url(url)
+            key = clean_key(key)
+            if previous and not key and url.rstrip("/") == previous["url"].rstrip("/"):
+                key = previous["key"]
+            if not key:
+                raise ValueError("请先填写 API Key 再获取模型")
+            provider = config.get("provider") or (previous or {}).get("provider") or ""
+        return discover_models(url, key, provider)
 
     def test(self, config, model_id=None):
         if model_id is not None and not isinstance(model_id, str):

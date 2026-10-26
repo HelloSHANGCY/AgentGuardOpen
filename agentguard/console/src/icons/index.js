@@ -1,7 +1,7 @@
 // 统一使用圆角描边图标；只导出控制台实际使用的图标，保持按需打包。
 export {
   Activity, Bell, Boxes, Brain, Check, CircleCheck, Database, Download, Gauge,
-  Library, Monitor, Plus, Radar, Search, ShieldCheck, Timer, Upload,
+  Library, Monitor, Plus, Radar, Search, Shield, ShieldCheck, Timer, Upload,
   Crosshair as Aim,
   ChevronRight as ArrowRight,
   Bell as BellFilled,

@@ -36,3 +36,11 @@ export async function testModel(modelId, config) {
     return await adminJson("/models/test", { method: "POST", body: JSON.stringify({ config, ...(modelId ? { model_id: modelId } : {}) }) });
   } catch (error) { if (error.status === 401) adminNeedsToken.value = true; return { ok: false, error: error.message }; }
 }
+export async function discoverModels(config, modelId) {
+  try {
+    return await adminJson("/models/discover", { method: "POST", body: JSON.stringify({ config, ...(modelId ? { model_id: modelId } : {}) }) });
+  } catch (error) {
+    if (error.status === 401) adminNeedsToken.value = true;
+    throw error;
+  }
+}

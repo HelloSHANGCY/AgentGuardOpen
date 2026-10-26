@@ -48,7 +48,7 @@
             <div class="models-form-row"><el-form-item label="名称" prop="name"><el-input v-model="form.name" aria-label="模型名称" :maxlength="80" /></el-form-item><el-form-item label="供应商" prop="provider"><el-select v-model="form.provider" filterable allow-create default-first-option aria-label="模型供应商" @change="chooseProvider"><el-option v-for="name in providerOptions" :key="name" :label="name" :value="name" /></el-select></el-form-item></div>
             <el-form-item label="接口地址" prop="url"><el-input v-model="form.url" aria-label="模型接口地址" class="mono" placeholder="https://api.example.com/v1/chat/completions" /></el-form-item>
             <el-form-item label="API Key"><el-input v-model="form.key" aria-label="模型 API Key" :disabled="form.clear_key" type="password" show-password autocomplete="off" :placeholder="keySet ? `已设置（${keyHint}），留空不修改` : '输入 API Key'" /><el-checkbox v-if="keySet" v-model="form.clear_key">清除 API Key</el-checkbox></el-form-item>
-            <div class="models-form-row"><el-form-item label="模型" prop="model"><el-select v-if="connectionPreset" v-model="form.model" filterable aria-label="模型标识" class="mono"><el-option v-for="model in connectionPreset.models" :key="model.id" :label="model.id" :value="model.id" /></el-select><el-input v-else v-model="form.model" aria-label="模型标识" class="mono" /></el-form-item><el-form-item label="默认思考等级"><el-select v-model="form.effort" aria-label="默认思考等级"><el-option v-for="key in effortOptions" :key="key" :label="EFFORT_TEXT[key]" :value="key" /></el-select></el-form-item></div>
+            <div class="models-form-row"><el-form-item label="模型" prop="model"><div class="models-model-picker"><el-select v-model="form.model" filterable allow-create default-first-option aria-label="模型标识" class="mono" placeholder="输入模型 ID，或获取可用模型"><el-option v-for="item in modelOptions" :key="item.id" :label="item.id" :value="item.id" /></el-select><el-button link type="primary" size="small" :loading="discovering" :disabled="busy" @click="loadModels">获取模型</el-button></div><p v-if="discoveryError" class="models-model-hint is-error" role="status">{{ discoveryError }}</p><p v-else-if="discoveryNote" class="models-model-hint" role="status">{{ discoveryNote }}</p></el-form-item><el-form-item label="默认思考等级"><el-select v-model="form.effort" aria-label="默认思考等级"><el-option v-for="key in effortOptions" :key="key" :label="EFFORT_TEXT[key]" :value="key" /></el-select></el-form-item></div>
           </el-tab-pane>
           <el-tab-pane label="用途配置" name="usages">
             <el-form-item label="用途（可选）"><el-select v-model="selectedUsages" multiple clearable aria-label="模型用途" placeholder="未分配"><el-option v-for="(spec, key) in modelData.purposes" :key="key" :label="purposeOption(key, spec)" :value="key" :disabled="key === 'intent' && !supportsIntent" /></el-select></el-form-item>
@@ -74,7 +74,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { tab, registerPageLeaveGuard } from "../store/runtime";
 import { adminToken, adminNeedsToken } from "../store/devices";
 import { EFFORT_TEXT } from "../utils/format";
-import { modelData, modelsLoaded, modelsError, refreshModels, saveModel, deleteModel, testModel } from "../store/models";
+import { modelData, modelsLoaded, modelsError, refreshModels, saveModel, deleteModel, testModel, discoverModels } from "../store/models";
 
 const endpointHost = url => { try { return new URL(url).host; } catch { return url; } };
 const active = computed(() => tab.value === "models");
@@ -99,8 +99,22 @@ const connectionPreset = computed(() => {
   const base = form.url.trim().replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
   return (modelData.value.presets || []).find(preset => preset.base_urls.includes(base));
 });
-const modelProfile = computed(() => connectionPreset.value?.models.find(model => model.id === form.model));
-const effortOptions = computed(() => modelProfile.value?.efforts || Object.keys(EFFORT_TEXT));
+const discoveredModels = ref([]), discovering = ref(false), discoveryError = ref(""), discoveryNote = ref("");
+const modelOptions = computed(() => {
+  const models = new Map();
+  for (const item of connectionPreset.value?.models || []) models.set(item.id, item);
+  for (const item of discoveredModels.value) {
+    const previous = models.get(item.id);
+    models.set(item.id, { ...previous, ...item, efforts: item.efforts?.length ? item.efforts : previous?.efforts || [] });
+  }
+  if (form.model && !models.has(form.model)) models.set(form.model, { id: form.model, efforts: [] });
+  return [...models.values()];
+});
+const selectedModel = computed(() => modelOptions.value.find(item => item.id === form.model));
+const effortOptions = computed(() => {
+  const levels = selectedModel.value?.efforts || [];
+  return levels.length ? levels : Object.keys(EFFORT_TEXT);
+});
 const supportsIntent = computed(() => effortOptions.value.includes('off'));
 const selectedUsages = ref([]), usages = reactive({});
 const testResult = ref(null), error = ref("");
@@ -140,16 +154,53 @@ async function openModel(model) {
   selectedUsages.value = Object.keys(model?.usages || {});
   for (const [key, spec] of Object.entries(modelData.value.purposes)) usages[key] = {timeout:model?.usages[key]?.timeout ?? spec.timeout, effort:model?.usages[key]?.effort ?? "inherit"};
   detailTab.value = "connection"; error.value = ""; testResult.value = null; visible.value = true;
+  // 新打开的接入记录不复用上一次对话框的模型发现结果。
+  resetDiscovery();
   await nextTick();
   initialDraft.value = draftSnapshot();
 }
+function resetDiscovery() {
+  discoveryRequest += 1;
+  discoveredModels.value = [];
+  discovering.value = false;
+  discoveryError.value = "";
+  discoveryNote.value = "";
+}
+let discoveryRequest = 0;
+async function loadModels() {
+  if (discovering.value) return;
+  discoveryError.value = "";
+  discoveryNote.value = "";
+  if (!form.url.trim()) { discoveryError.value = "请先填写接口地址"; return; }
+  if (!form.key.trim() && !keySet.value) { discoveryError.value = "请先填写 API Key 再获取模型"; return; }
+  const request = ++discoveryRequest;
+  discovering.value = true;
+  try {
+    const result = await discoverModels({ provider: form.provider, url: form.url, key: form.key }, modelId.value);
+    if (request !== discoveryRequest) return;
+    discoveredModels.value = result.models || [];
+    if (!discoveredModels.value.length) { discoveryNote.value = "供应商未返回可用模型"; return; }
+    const withEfforts = result.with_efforts ?? discoveredModels.value.filter(item => item.efforts?.length).length;
+    discoveryNote.value = `已获取 ${discoveredModels.value.length} 个可用模型${withEfforts ? `，其中 ${withEfforts} 个带有思考强度信息` : ""}`;
+    if (!form.model) form.model = discoveredModels.value[0].id;
+  } catch (e) {
+    if (request === discoveryRequest) discoveryError.value = e.message;
+  } finally {
+    if (request === discoveryRequest) discovering.value = false;
+  }
+}
+watch([() => form.provider, () => form.url], resetDiscovery);
 function chooseProvider(name) {
   const preset = (modelData.value.presets || []).find(item => item.provider === name);
   if (!preset) return;
   form.url = preset.url;
-  if (!preset.models.some(model => model.id === form.model)) form.model = preset.models[0].id;
+  if (preset.models.length) {
+    if (!preset.models.some(model => model.id === form.model)) form.model = preset.models[0].id;
+  } else {
+    form.model = "";
+  }
   form.effort = 'default';
-  if (!form.name) form.name = `${name} · ${form.model}`;
+  if (!form.name) form.name = form.model ? `${name} · ${form.model}` : name;
 }
 watch(effortOptions, options => {
   if (!options.includes(form.effort)) form.effort = 'default';
@@ -227,6 +278,11 @@ watch(active, shown => { if (shown) reload(); else {visible.value = false; clear
 .models-pager { display:flex; justify-content:flex-end; margin-top:16px; }
 .models-form-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .models-form-row :deep(.el-select) { width:100%; }
+.models-model-picker { display:flex; align-items:center; gap:8px; width:100%; min-width:0; }
+.models-model-picker :deep(.el-select) { flex:1 1 auto; width:auto; min-width:0; }
+.models-model-picker .el-button { flex:none; margin:0; }
+.models-model-hint { flex-basis:100%; margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.models-model-hint.is-error { color:var(--crit); }
 .models-purpose { margin:14px 0 0; padding:14px; border:1px solid var(--line); border-radius:8px; }
 .models-purpose h3 { margin:0 0 14px; color:var(--title); font-size:14px; font-weight:500; }
 .models-purpose :deep(.el-form-item) { margin-bottom:0; }

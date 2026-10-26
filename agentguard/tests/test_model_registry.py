@@ -62,6 +62,36 @@ def create(client, **changes):
     return response.json()
 
 
+def test_provider_presets_cover_common_openai_compatible_services():
+    from agentguard.llm.providers import PRESETS
+
+    providers = {preset["provider"]: preset for preset in PRESETS}
+    assert {"OpenCode Go", "DeepSeek", "OpenAI", "通义千问", "智谱 AI", "Moonshot Kimi",
+            "SiliconFlow", "OpenRouter", "Google Gemini"} <= providers.keys()
+    assert providers["DeepSeek"]["url"] == "https://api.deepseek.com/chat/completions"
+    assert [model["id"] for model in providers["DeepSeek"]["models"]][:1] == ["deepseek-flash"]
+    assert len({preset["id"] for preset in PRESETS}) == len(PRESETS)
+    assert all(preset["url"].startswith("https://") and preset["base_urls"] for preset in PRESETS)
+
+
+def test_discovery_uses_stored_key_only_for_unchanged_url(runtime, monkeypatch):
+    client, _, _ = runtime
+    calls = []
+
+    def fake_discover(url, key, provider=""):
+        calls.append((url, key, provider))
+        return {"provider": provider, "models_url": url, "models": [], "count": 0, "with_efforts": 0}
+
+    monkeypatch.setattr(R, "discover_models", fake_discover)
+    model = create(client, url="https://api.deepseek.com/chat/completions", key="stored-discovery-key-1234")
+    response = client.post("/v1/admin/models/discover", json={
+        "config": {"url": "https://api.deepseek.com/chat/completions"}, "model_id": model["model_id"]})
+    assert response.status_code == 200 and calls[0][1] == "stored-discovery-key-1234"
+    response = client.post("/v1/admin/models/discover", json={
+        "config": {"url": "https://evil.example.test/v1/chat/completions"}, "model_id": model["model_id"]})
+    assert response.status_code == 400 and len(calls) == 1
+
+
 def test_multiple_providers_and_keys_optional_usages_and_restart(runtime, tmp_path):
     client, engine, _ = runtime
     first = create(client)
@@ -364,7 +394,8 @@ def test_admin_auth_covers_all_model_endpoints(runtime, monkeypatch):
     with TestClient(create_app()) as client:
         for method, path, payload in [("GET", "/v1/admin/models", None), ("POST", "/v1/admin/models", spec()),
                                       ("PUT", "/v1/admin/models/missing", {}), ("DELETE", "/v1/admin/models/missing", None),
-                                      ("POST", "/v1/admin/models/test", {"config": spec()})]:
+                                      ("POST", "/v1/admin/models/test", {"config": spec()}),
+                                      ("POST", "/v1/admin/models/discover", {"config": spec()})]:
             response = client.request(method, path, **({"json": payload} if payload is not None else {}))
             assert response.status_code == 401
         assert client.get("/v1/admin/models", headers={"X-AG-Admin-Token": "registry-admin"}).status_code == 200

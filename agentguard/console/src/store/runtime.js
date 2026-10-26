@@ -462,7 +462,7 @@ export const deploymentPage = ref("architecture"), deploymentMethod = ref("docke
 
 export const TERMINAL_PAGES = [
   { key: "devices", label: "设备列表", icon: "List" },
-  { key: "policies", label: "防护策略", icon: "SetUp" },
+  { key: "policies", label: "防护策略", icon: "Shield" },
   { key: "deploy", label: "客户端部署", icon: "Download" },
 ];
 export const terminalTab = ref("devices");

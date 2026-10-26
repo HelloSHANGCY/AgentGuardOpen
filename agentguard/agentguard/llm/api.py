@@ -63,6 +63,22 @@ def build_llm_api(settings, store, engine) -> APIRouter:
         except KeyError:
             raise HTTPException(404, "model not found")
 
+    @router.post("/v1/admin/models/discover")
+    async def discover_models(body: dict, x_ag_admin_token: str | None = Header(default=None)):
+        authorize_admin(x_ag_admin_token)
+        config = body.get("config")
+        if not isinstance(config, dict):
+            raise HTTPException(400, "config must be an object")
+        model_id = body.get("model_id")
+        if model_id is not None and not isinstance(model_id, str):
+            raise HTTPException(400, "model_id must be a string")
+        try:
+            return await run_in_threadpool(models.discover, config, model_id)
+        except KeyError:
+            raise HTTPException(404, "model not found")
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+
     @router.post("/v1/admin/models/test")
     async def test_model(body: dict, x_ag_admin_token: str | None = Header(default=None)):
         authorize_admin(x_ag_admin_token)

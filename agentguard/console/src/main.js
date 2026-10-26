@@ -7,7 +7,7 @@ import {
   Aim, ArrowRight, BellFilled, CircleCheckFilled, CircleCloseFilled, Close, Collection, Connection, Cpu, DataAnalysis,
   DataLine, Document, Files, Folder, Link, List, Monitor, Plus, Promotion, QuestionFilled, Refresh,
   Search, SetUp, Share, Timer, TrendCharts, Upload, Warning, WarningFilled,
-  Activity, Boxes, Brain, Database, Gauge, Library, Radar, ShieldCheck,
+  Activity, Boxes, Brain, Database, Gauge, Library, Radar, Shield, ShieldCheck,
 } from "./icons";
 
 import "./styles/theme.css";
@@ -22,7 +22,7 @@ const icons = {
   Aim, ArrowRight, BellFilled, CircleCheckFilled, CircleCloseFilled, Close, Collection, Connection, Cpu, DataAnalysis,
   DataLine, Document, Files, Folder, Link, List, Monitor, Plus, Promotion, QuestionFilled, Refresh,
   Search, SetUp, Share, Timer, TrendCharts, Upload, Warning, WarningFilled,
-  Activity, Boxes, Brain, Database, Gauge, Library, Radar, ShieldCheck,
+  Activity, Boxes, Brain, Database, Gauge, Library, Radar, Shield, ShieldCheck,
 };
 
 const app = createApp(App);

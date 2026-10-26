@@ -33,5 +33,3 @@ agentguard/data/intent/
 
 # SWE-chat 正常会话评测数据（第三方原始会话记录，不进仓库）
 agentguard/data/benign/
-
-/26年网安揭榜挑战赛-赛题2-靶场AgentRange.zip
