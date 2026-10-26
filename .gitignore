@@ -31,9 +31,6 @@ agentguard/console/node_modules/
 agentguard/data/intent/
 .venv-intent/
 
-# 终端客户端预构建包（build_linux.sh / build_windows.ps1 产物，经服务端 /v1/agents/client 提供下载）
-agentguard/endpoint/dist/
-
 # SWE-chat 正常会话评测数据（第三方原始会话记录，不进仓库）
 agentguard/data/benign/
 
